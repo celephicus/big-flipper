@@ -1,0 +1,207 @@
+$COMMENT
+
+7 rows x 20 columns.
+
+A[0-3] D[4-6] Row drives
+D2 SET
+D3  /SET
+D7
+D[8-10] COL_SEL
+D[11-13] COL_ADDR
+
+$PARTS
+HEADER_2X20
+    [1-40]
+HEADER_2X17
+    [1-34]
+HEADER_2X3
+    [1-6]
+HEADER_1X6    
+    [1-6]
+TERMINAL_3W
+    [1-3]
+RES 
+    [1-2] 
+CAP 
+    [1-2] 
+LINK    
+    [1-2] 
+LED_RG
+    {AR,AG,C}
+ATMega328
+    1 {PC6,PCINT14,*RESET}
+    2 {PD0,PCINT16,RXD}
+    3 {PD1,PCINT17,TXD}
+    4 {PD2,PCINT18,INT0}
+    5 {PD3,PCINT19,OC2B,INT1}
+    6 {PD4,PCINT20,XCK,T0}
+    7	VCC	
+    8	GND	
+    9 {PB6,PCINT6,XTAL1,TOSC1}
+    10 {PB7,PCINT7,XTAL2,TOSC2}
+    11 {PD5,PCINT21,OC0B,T1}
+    12 {PD6,PCINT22,OC0A,AIN0}
+    13 {PD7,PCINT23,AIN1}
+    14 {PB0,PCINT0,CLKO,ICP1}
+    15 {PB1,OC1A,PCINT}
+    16 {PB2,SS,OC1B,PCINT2}
+    17 {PB3,MOSI,OC2A,PCINT3}
+    18 {PB4,MISO,PCINT4}
+    19 {PB5,SCK,PCINT5}
+    20	AVCC	
+    21	AREF	
+    22	GND	
+    23 {PC0,ADC0,PCINT8}
+    24 {PC1,ADC1,PCINT9}
+    25 {PC2,ADC2,PCINT10}
+    26 {PC3,ADC3,PCINT11}
+    27 {PC4,ADC4,SDA,PCINT12}
+    28 {PC5,ADC5,SCL,PCINT13}
+{L293,L293D}
+    1   EN12
+    2   IN1
+    3   OUT1
+    {4,5,12,13} GND
+    6   OUT2
+    7   IN2
+    8   VBB
+    9   EN34
+    10  IN3
+    11  OUT3
+    14  OUT4
+    15  IN4
+    16  VCC
+HC595
+    [1-7] Q[1-7]
+        8   GND
+        9   SDO
+        10  *SRCLR
+        11  CLK
+        12  STB
+        13  *OE
+        14  SDI
+        15  Q0
+        16  VCC
+
+$comps
+J1 TERMINAL_3W  # Power
+J2  HEADER_2X3       # Debug/ISP
+J3  HEADER_1X6      # FTDI
+U1	ATMega328
+U[2-4]	HC595
+U[5-9]  L293D       # Column driver
+U[10-13]  L293D     # Row driver
+J[4-7]  HEADER_2X20     # Column drive
+J8      HEADER_2X17     # Row drive
+R1      RES         10K # Reset pullup.
+LK1     LINK        # 5V from FTDI
+C1  CAP         100n
+
+$comment
+
+IO Assignment
+    {PB0,PCINT0,CLKO,ICP1}      ROW1
+    {PB1,OC1A,PCINT}            ROW2
+    {PB2,SS,OC1B,PCINT2}        COL_EN      Timer output for pulse width.
+        {PB3,MOSI,OC2A,PCINT3}  MOSI
+        {PB4,MISO,PCINT4}       MISO
+        {PB5,SCK,PCINT5}        SCK
+    {PB6,PCINT6,XTAL1,TOSC1}    COL_CLR
+    {PB7,PCINT7,XTAL2,TOSC2}    *SD_SEL     Selects SD card onto SPI bus.
+        
+    {PC0,ADC0,PCINT8}      
+    {PC1,ADC1,PCINT9}      
+    {PC2,ADC2,PCINT10}          BUS_VOLTS_MON
+    {PC3,ADC3,PCINT11}      
+    {PC4,ADC4,SDA,PCINT12}      COL_DATA
+    {PC5,ADC5,SCL,PCINT13}      COL_CLK
+        {PC6,PCINT14,/RESET}    /RESET DebugWire
+
+        {PD0,PCINT16,RXD}    RXD
+        {PD1,PCINT17,TXD}    TXD
+    {PD2,PCINT18,INT0}       ROW3
+    {PD3,PCINT19,OC2B,INT1}  ROW4
+    {PD4,PCINT20,XCK,T0}     ROW5
+    {PD5,PCINT21,OC0B,T1}    ROW6
+    {PD6,PCINT22,OC0A,AIN0}  ROW7
+    {PD7,PCINT23,AIN1}       ROW_DATA
+    
+
+
+Component layout (pin 1 on top LH):
+
+    J8    U10 U11 U12  U13
+    
+ J1 J2    U2  J4  U3  J5  U4  J6  U8  J7
+    U1
+ J3       U5      U6      U7      U9
+    
+$nets
++5V         U[2-4]/VCC U[5-13]/VCC J1/2 LK1/1 U1/{VCC,AVCC} R1/1 J2/2 
+0V          U1/GND U[2-4]/GND U[5-13]/GND J1/3 J3/{1,2} J2/6 C1/2 U[2-4]/*OE U13/IN[3-4] U13/EN34
+VBB         U[5-13]/VBB J1/1
+5V_FTDI         LK1/2 J3/3
+
+# Micro
+*RESET U1/*RESET J2/5 R1/2
+RXD U1/RXD J3/4
+TXD U1/TXD J3/5
+MOSI     U1/MOSI J2/4   
+MISO     U1/MISO J2/1   
+SCK     U1/SCK J2/3     
+AREF    U1/AREF C1/1
+
+# Columns
+C1 U5/OUT1 J4/[9-16]
+C2 U5/OUT2 J4/[1-8]
+C3 U5/OUT3 J4/[17-24]
+C4 U5/OUT4 J4/[25-32]
+C5 U6/OUT1 J4/[33-40]
+C6 U6/OUT2 J5/[9-16]
+C7 U6/OUT3 J5/[1-8]
+C8 U6/OUT4 J5/[17-24]
+C9 U7/OUT1 J5/[25-32]
+C10 U7/OUT2 J5/[33-40]
+C11 U7/OUT3 J6/[9-16]
+C12 U7/OUT4 J6/[1-8]
+C13 U8/OUT1 J6/[17-24]
+C14 U8/OUT2 J6/[25-32]
+C15 U8/OUT3 J6/[33-40]
+C16 U8/OUT4 J7/[9-16]
+C17 U9/OUT1 J7/[1-8]
+C18 U9/OUT2 J7/[17-24]
+C19 U9/OUT3 J7/[25-32]
+C20 U9/OUT4 J7/[33-40]
+
+C_DRIVE[1-8] U2/Q[0-7]   U[5-6]/IN[1-4]
+C_DRIVE[9-16] U3/Q[0-7]  U[7-8]/IN[1-4]
+C_DRIVE[17-20] U4/Q[0-3] U9/IN[1-4]
+U2_SDO  U2/SDO U3/SDI
+U3_SDO  U3/SDO U4/SDI
+
+COL_EN  U1/OC1B U[5-9]/EN{12,34}
+COL_DATA U1/PC4 U2/SDI
+COL_CLK U1/PC5 U[2-4]/CLK U[2-4]/STB
+*COL_CLR U1/PB6 U[2-4]/*SRCLR
+
+#ROWS
+ROW_DATA    U1/PD7 U[10-12]/IN[1-4] U13/IN[1-2] 
+ROW[1-2]    U1/PB[0-1] U10/EN{12,34}
+ROW[3-4]    U1/PD[2-3] U11/EN{12,34}
+ROW[5-6]    U1/PD[4-5] U12/EN{12,34}
+ROW7        U1/PD6 U13/EN12
+
+R1H		U10/OUT2	J8/{19,20}
+R1L		U10/OUT1	J8/{23,24}				
+R2H		U10/OUT4	J8/{25,26}				
+R2L		U10/OUT3	J8/{27,28}				
+R3H		U11/OUT2	J8/{29,30}				
+R3L		U11/OUT1	J8/{31,32}				
+R4H		U11/OUT4	J8/{17,18}				
+R4L		U11/OUT3	J8/{15,16}				
+R5H		U12/OUT2	J8/{13,14}				
+R5L		U12/OUT1	J8/{11,12}				
+R6H		U12/OUT4	J8/{9,10}				
+R6L		U12/OUT3	J8/{7,8}				
+R7H		U13/OUT1	J8/{5,6}				
+R7L		U13/OUT2	J8/{1,2}		
