@@ -31,7 +31,6 @@ void debugRuntimeError(uint8_t fileno, uint16_t lineno, uint8_t errorno) __attri
 // When something must be true at compile time...
 #define STATIC_ASSERT(expr_) extern int error_static_assert_fail__[(expr_) ? 1 : -1] __attribute__((unused))
 
-
 /* Watchdog manager -- the idea is that the mainloop calls debugKickWatchdog() with DEBUG_WATCHDOG_MASK_MAINLOOP, and
 	an interrupt timer routine calls it with one of the other masks. Make sure you set DRIVER_WATCHDOG_MASK_ALL to the bitwise
 	OR of all the masks you use. Then the watchdog will only be kicked when the each mask has been called. This guards against

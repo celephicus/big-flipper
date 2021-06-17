@@ -1,6 +1,8 @@
 /* Implementation from Adam Dunkels' Protothreads macros. */
 
-#ifdef CFG_LC2_USE_SWITCH
+#include "project_config.h"
+
+#if CFG_LC2_USE_SWITCH
 
 /* The switch implementation works on all compilers. */
 typedef unsigned short tlc_t;
