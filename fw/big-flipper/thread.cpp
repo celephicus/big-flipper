@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "project_config.h"
 #include "thread.h"
 
 // No point having this as no debug facilities used. 

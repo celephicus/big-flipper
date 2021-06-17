@@ -129,10 +129,10 @@ void AlphaDisplay::setProperty(uint8_t idx, uint16_t val) { if (idx < getPropert
 
 void AlphaDisplay::service() { 
 	if (isConnected()) {
-		if (is_update_timeout(getProperty(PROP_UPDATE_INTERVAL))) 
-			const thread_t update_thread = ;
+		if (is_update_timeout(getProperty(PROP_UPDATE_INTERVAL))) {
+			const thread_t update_thread = get_update_thread();
 			// ASSERT(NULL != update_thread);		// Look before you leap... 
-			_update_mode.thread_rc = threadRun(&_update_mode.tcb, get_update_thread(), (void*)this);
+			_update_mode.thread_rc = threadRun(&_update_mode.tcb, update_thread, (void*)this);
 		}
 	}
 }

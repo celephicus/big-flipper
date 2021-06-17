@@ -1,5 +1,5 @@
 #include <Arduino.h>
-//#include <Wire.h>
+#include <Wire.h>
 #include <avr/pgmspace.h>
 
 #include "ht16k33_display.h"

@@ -1,10 +1,9 @@
 #include <Arduino.h>
 
-#include "project_config.h"
-#include "debug.h"
 #include "utils.h"
 
-FILENUM(213);
+// #include "debug.h"
+// FILENUM(213);
 
 // From https://github.com/brandondahler/retter.
 uint16_t utilsChecksumFletcher16(uint8_t const *data, size_t count) {
