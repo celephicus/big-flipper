@@ -1,9 +1,14 @@
 #include <Arduino.h>
 #include <SD.h>
 #include <SPI.h>
+#define FASTLED_USE_GLOBAL_BRIGHTNESS 0
 #include <FastLED.h>
 
 #include "console.h"
+
+#include "project_config.h"
+#include "debug.h"
+FILENUM(1);
 
 //
 // Console....
@@ -22,12 +27,11 @@ static void console_init() {
 	print_console_prompt();										// Start off with a prompt.
 }
 
-
 //
 // Display...
 
 #define CFG_WANT_DISPLAY_14_SEGMENT_LED
-
+/*
 // 16K33 14 segment display.
 #if defined(CFG_WANT_DISPLAY_14_SEGMENT_LED)	
 static HT16K33Display f_display((const AlphaDisplayFont*)&HT16K33_DISPLAY_FONT_DEFAULT);
@@ -64,13 +68,19 @@ void driverInitDisplay() {
 	f_display.setProperty(AlphaDisplay::PROP_UPDATE_INTERVAL, REGS[REGS_IDX_DISPLAY_UPDATE_INTERVAL]);
 	display_init_local();
 }
-
+*/
 void setup() {
-	Serial.begin(115200);
+	Serial.begin(CFG_CONSOLE_BAUDRATE);
 	console_init();
-	
 }
 
+// Runtime error, ooops....
+void debugRuntimeError(uint8_t fileno, uint16_t lineno, uint8_t errorno) {
+	// Do something!
+
+	while (1)
+		/* empty */ ;
+}
 void loop() {
 	if (Serial.available()) {									// If a character is available...
 		const char c = Serial.read();
@@ -94,4 +104,5 @@ void loop() {
 			print_console_prompt();								// In any case print a newline and prompt ready for the next line of input. 
 		}
 	}
+	ASSERT(0); 
 }

@@ -1,4 +1,9 @@
 #include <Arduino.h>
+
+#include "project_config.h"
+#include "debug.h"
+FILENUM(10);
+
 #include "alpha_display.h"
 
 AlphaDisplay::AlphaDisplay(const AlphaDisplayFont* font) : _font(font), _connected(false), _seg_buffer(NULL), _disp_buffer(NULL), _props(NULL), _text_dir_rtl(false) {
@@ -131,7 +136,7 @@ void AlphaDisplay::service() {
 	if (isConnected()) {
 		if (is_update_timeout(getProperty(PROP_UPDATE_INTERVAL))) {
 			const thread_t update_thread = get_update_thread();
-			// ASSERT(NULL != update_thread);		// Look before you leap... 
+			ASSERT(NULL != update_thread);		// Look before you leap... 
 			_update_mode.thread_rc = threadRun(&_update_mode.tcb, update_thread, (void*)this);
 		}
 	}
