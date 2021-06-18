@@ -60,8 +60,10 @@ uint8_t regsInit() {
 }
 
 uint8_t regsNvRead() {
-    g_registers.vals[REGS_IDX_EEPROM_RC] = eepromDriverRead(&EEPROM_BLK, NULL);
-	return g_registers.vals[REGS_IDX_EEPROM_RC];
+	const uint8_t nvregs_rc = eepromDriverRead(&EEPROM_BLK, NULL);
+	regsWriteMaskFlags(REGS_FLAGS_MASK_EEPROM_BANK_1_CORRUPT, !!(nvregs_rc & EEPROM_DRIVER_BANK_CORRUPT_1_MASK));
+	regsWriteMaskFlags(REGS_FLAGS_MASK_EEPROM_BANK_2_CORRUPT, !!(nvregs_rc & EEPROM_DRIVER_BANK_CORRUPT_2_MASK));
+	return nvregs_rc;
 }
 
 void regsNvWrite() {

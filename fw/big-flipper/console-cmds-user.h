@@ -1,11 +1,16 @@
-# include "regs.h"
- #include <avr/wdt.h>																			
+#include "project_config.h"
+#include "driver.h"
+#include "regs.h"
+#include <avr/wdt.h>																			
 
 REGS_CONSOLE_EXTRA
 
 // User commands, these are really examples...
 static bool console_cmds_user(char* cmd) {
 	switch (hash(cmd)) {
+		// Commands for the driver, mianly displays.
+		DRIVER_CONSOLE_COMMANDS
+		
 		// Commands for dealing with registers.
 		REGS_CONSOLE_COMMANDS
 		

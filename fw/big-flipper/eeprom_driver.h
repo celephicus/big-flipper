@@ -33,7 +33,12 @@ typedef struct {
 void eepromDriverInit(const eeprom_driver_block_t* block);
 
 // Initialise the EEPROM, When it returns it is guaranteed to have valid data in the buffer, but it might be set to default values.
-enum { EEPROM_DRIVER_READ_ERROR_OK, EEPROM_DRIVER_READ_BANK_CORRUPT_1, EEPROM_DRIVER_READ_BANK_CORRUPT_2, EEPROM_DRIVER_READ_BANK_CORRUPT_ALL };
+//  The return value is a code ORed from the EEPROM_DRIVER_BANK_CORRUPT_nnn_MASK masks. If it is set to EEPROM_DRIVER_DEFAULTED then the values have been set to default values.
+enum { 
+	EEPROM_DRIVER_BANK_CORRUPT_1_MASK = 1, 
+	EEPROM_DRIVER_BANK_CORRUPT_2_MASK = 2,
+};
+enum { EEPROM_DRIVER_DEFAULTED = 3 };
 uint8_t eepromDriverRead(const eeprom_driver_block_t* block, const void* default_arg);
 
 // Set a default set of data to the volatile memory. This must still be written to EEPROM.

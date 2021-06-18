@@ -77,7 +77,7 @@ uint8_t eepromDriverRead(const eeprom_driver_block_t* block, const void* default
 			break;
 	}
 
-    return rc; // Return one of EEPROM_DRIVER_INIT_ERROR_xxx values. 
+    return rc; // Return OR of EEPROM_DRIVER_BANK_CORRUPT_xxx_MASK values.
 }
 
 void eepromDriverSetDefaults(const eeprom_driver_block_t* block, const void* default_arg) {

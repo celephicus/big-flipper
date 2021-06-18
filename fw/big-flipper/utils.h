@@ -32,9 +32,11 @@ bool utilsIsTimerDone(T &then, T timeout) { return ((T)millis() - then) > timeou
 #define CONCAT2(s1_, s2_) s1_##s2_
 #define CONCAT(s1_, s2_) CONCAT2(s1_, s2_)
 
-// The worlds simplest scheduler, run a block every so often. Requires RUN_EVERY_TIME_T & RUN_EVERY_GET_TIME be defined.
+// The worlds simplest scheduler, run a block every so often. 
 // Stolen from a discussion on some Arduino forum. 
-#define runEvery(t_) for (static RUN_EVERY_TIME_T then; (RUN_EVERY_GET_TIME() - then) >= (RUN_EVERY_TIME_T)(t_); then += (RUN_EVERY_TIME_T)(t_))
+#define runEvery(T_, t_) for (static T_ then; ((T_)millis() - then) >= (T_)(t_); then += (T_)(t_))
+#define runEveryU8(t_) runEvery(uint8_t, t_)
+#define runEveryU16(t_) runEvery(uint16_t, t_)
 
 // How many elements in an array?
 #define ELEMENT_COUNT(x_) (sizeof(x_) / sizeof((x_)[0]))

@@ -7,12 +7,11 @@
 #endif
 
 // Define version of regs schema. If you change this file, increment the number to force any existing EEPROM DATA to flag as corrupt. 
-#define REGS_VERSION 2
+#define REGS_VERSION 3
 
 // Registers are defined with 3 parameters, name, default value, and a short comment that is turned into help text. 
 #define REGS_DEFS(gen_)																														\
  gen_(FLAGS,						REGS_NO_DEFAULT,					"Various flags, see REGS_FLAGS_MASK_xxx")							\
- gen_(EEPROM_RC,					REGS_NO_DEFAULT,					"Last NV read status")												\
  gen_(RESTART,						REGS_NO_DEFAULT,					"Snapshot of mcusr in low byte, watchdog in high byte.")			\
  gen_(ADC_MON_PWR_VOLTS,			REGS_NO_DEFAULT,					"Raw ADC value from 24V input")										\
 																																			\
@@ -28,7 +27,7 @@
 #define REGS_START_NV_IDX REGS_IDX_ENABLES
 
 // Define which regs to print in hex.
-#define REGS_PRINT_HEX_MASK (_BV(REGS_IDX_FLAGS) | _BV(REGS_IDX_ENABLES))
+#define REGS_PRINT_HEX_MASK (_BV(REGS_IDX_FLAGS) | _BV(REGS_IDX_RESTART) | _BV(REGS_IDX_ENABLES))
 
 // Flags are defined with 3 parameters, name, bit position and a short description that is turned into help text. 
 #define REGS_FLAGS_DEFS(gen_)																							\
@@ -37,8 +36,10 @@
  /* Debug flags. */																										\
 																														\
  /* Fault flags, assigned down from bit 15. */																			\
-gen_(SD_CARD_FILE_FAIL,	14,	"SD card data file not present")															\
-gen_(SD_CARD_INIT_FAIL,	15,	"SD card failed to initialise")																\
+gen_(EEPROM_BANK_1_CORRUPT,	12,	"EEPROM bank 1 corrupt")																\
+gen_(EEPROM_BANK_2_CORRUPT,	13,	"EEPROM bank 2 corrupt")																\
+gen_(SD_CARD_FILE_FAIL,		14,	"SD card data file not present")														\
+gen_(SD_CARD_INIT_FAIL,		15,	"SD card failed to initialise")															\
 
 // Enables are defined with 3 parameters, name, bit position and a short description that is turned into help text. 
 #define REGS_ENABLES_DEFS(gen_)																							\

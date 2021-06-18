@@ -1,3 +1,4 @@
 # We take all files.
 
-
+# Apart from build scripts.
+/console-mk.py
