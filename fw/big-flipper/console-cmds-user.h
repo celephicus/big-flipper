@@ -8,7 +8,7 @@ REGS_CONSOLE_EXTRA
 // User commands, these are really examples...
 static bool console_cmds_user(char* cmd) {
 	switch (hash(cmd)) {
-		// Commands for the driver, mianly displays.
+		// Commands for the driver, mainly displays.
 		DRIVER_CONSOLE_COMMANDS
 		
 		// Commands for dealing with registers.
@@ -22,3 +22,4 @@ static bool console_cmds_user(char* cmd) {
 	}
 	return true;
 }
+

@@ -238,7 +238,7 @@ bool HT16K33Display::begin(uint8_t address, uint8_t mode) {
 	if (0 == TWCR) Wire.begin();							//  Ensure that Wire.begin() has been called.
     Wire.beginTransmission(_i2c_address);
     Wire.write(HT16K33_CMD_SYSTEM_SETUP(true));				// Turn on oscillator, takes the display out of sleepy time...
-    const bool connected = !Wire.endTransmission();
+    const bool connected = !Wire.endTransmission();			// Easy check for connection.
 	
 	AlphaDisplay::begin(connected);							// Now that we know the display is present we call the base class.
     if (isConnected()) {

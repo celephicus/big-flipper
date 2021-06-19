@@ -4,8 +4,8 @@
 #define PROJECT_CONFIG_H__
 
 // Output to 14 segment display or Flipdots.
-// #define CFG_WANT_DISPLAY_FLIPDOT
-#define CFG_WANT_DISPLAY_14_SEGMENT_LED
+#define CFG_WANT_DISPLAY_FLIPDOT
+//#define CFG_WANT_DISPLAY_14_SEGMENT_LED
 
 // Console speed.
 #define CFG_CONSOLE_BAUDRATE 115200
@@ -15,7 +15,7 @@
 
 // Watchdog. 
 #define CFG_WATCHDOG_TIMEOUT WDTO_2S   
-#define CFG_WATCHDOG_ENABLE 1
+#define CFG_WATCHDOG_ENABLE 0
 #define CFG_WATCHDOG_MODULE_COUNT 0
 
 // Console speed.
