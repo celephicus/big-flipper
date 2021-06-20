@@ -6,8 +6,6 @@
 #include "project_config.h"
 #include "debug.h"
 #include "driver.h"
-//#include "types.h"
-//#include "event.h"
 #include "utils.h"
 #include "thread.h"
 //#include "adc_driver.h"
@@ -15,13 +13,16 @@
 
 FILENUM(3);
 
+// Called to initialise display at startup. Also calls driverUpdateDisplaySettings() which updates the settings of the display from the registers.
+static void display_init();
+
 // 16K33 14 segment display.
 #if defined(CFG_WANT_DISPLAY_14_SEGMENT_LED)	
 static HT16K33Display f_display((const AlphaDisplayFont*)&HT16K33_DISPLAY_FONT_DEFAULT);
 HT16K33Display& driverGetDisplay() { return f_display; }
 static void display_init() {
 	f_display.begin();
-	driverInitDisplay();
+	driverUpdateDisplaySettings();
 }
 static void display_init_local() {}
 
@@ -35,7 +36,7 @@ static FlipdotDisplay f_display(FLIPDOTS_GPIO_PINS, (const AlphaDisplayFont*)&FL
 FlipdotDisplay& driverGetDisplay() { return f_display; }
 static void display_init() {
 	f_display.begin();
-	driverInitDisplay();
+	driverUpdateDisplaySettings();
 }
 static void display_init_local() {
 	f_display.setProperty(FlipdotDisplay::PROP_PULSE_DURATION, REGS[REGS_IDX_FLIPDISK_PULSE_WIDTH]);
@@ -46,11 +47,13 @@ static void display_init_local() {
 # error Need CFG_WANT_DISPLAY_xxx
 #endif
 
-void driverInitDisplay() {
+void driverUpdateDisplaySettings() {
 	f_display.setUpdateMethod(REGS[REGS_IDX_DISPLAY_UPDATE_METHOD]);
 	f_display.setProperty(AlphaDisplay::PROP_UPDATE_INTERVAL, REGS[REGS_IDX_DISPLAY_UPDATE_INTERVAL]);
 	display_init_local();
 }
+
+
 #if 0
 // ADC read.
 //

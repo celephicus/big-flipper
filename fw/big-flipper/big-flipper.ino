@@ -8,10 +8,13 @@
 #include "debug.h"
 FILENUM(1);
 
+#include "utils.h"
 #include "regs.h"
 #include "console.h"
 #include "driver.h"
 #include "gpio.h"
+#include "animation.h"
+#include "word_driver.h"
 
 //
 // Console....
@@ -64,11 +67,23 @@ void setup() {
 	regs_init();
 	console_init();
 	driverInit();
+	wordDriverInit();
 }
 
 void loop() {
 	console_service();
 	driverService();
 
+	// Updates display & animation from registers every so often.
+	runEveryU16(500) {
+		driverUpdateDisplaySettings();
+		animation_set(REGS[REGS_IDX_ANIMATION]);		// No-op if no change.
+	}
+	
+	// Service animation.
+	runEveryU16(REGS[REGS_IDX_ANIMATION_UPDATE_INTERVAL]) {
+		animation_service();
+	}
+	
 	debugKickWatchdog(DEBUG_WATCHDOG_MASK_MAINLOOP);
 }

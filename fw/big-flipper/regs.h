@@ -86,6 +86,9 @@ bool regsUpdateMaskFlags(uint16_t mask, uint16_t val);
 	case /** ?V **/ 0x688c: { const uint8_t i = u_pop(); if (i >= REGS_COUNT) raise(CONSOLE_RC_ERROR_INDEX_OUT_OF_RANGE); print_value(i); } break;			\
 	case /** ??V **/ 0x85d3: for (uint8_t i = 0; i < REGS_COUNT; i += 1) print_value(i); break;																\
 	case /** ???V **/ 0x3cac: print_values_verbose(); break;																								\
+	case /** NV-DEFAULT **/ 0xfcdb: regsNvSetDefaults(); break;																								\
+	case /** NV-W **/ 0xa8c7: regsNvWrite(); break;																											\
+	case /** NV-R **/ 0xa8c2: regsNvRead(); break;																											\
 
 // Return the name of the register derived from the settings.local.h file. 
 const char* regsGetRegisterName(uint8_t idx);

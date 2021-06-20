@@ -261,7 +261,7 @@ thread_t FlipdotDisplay::get_update_thread() {
 	};
 	return (thread_t)pgm_read_word(&UPDATE_THREADS[get_update_mode(ELEMENT_COUNT(UPDATE_THREADS))]);
 }
-
+/*
 static void dump_flip(uint8_t col, uint8_t row, bool high_low) {
 	consolePrintValueStrProgmem(PSTR("Flip: ")); 
 	consolePrintValueSignedDecimal(col); consolePrintValueStrProgmem(PSTR(": ")); 
@@ -269,7 +269,7 @@ static void dump_flip(uint8_t col, uint8_t row, bool high_low) {
 	consolePrintValueSignedDecimal(high_low); consolePrintValueStrProgmem(PSTR(": ")); 
 	consolePrintNewline();
 }
-
+*/
 int8_t FlipdotDisplay::thread_update_immediate(void* arg) {
     FlipdotDisplay* display = (FlipdotDisplay*)arg;
     THREAD_BEGIN();

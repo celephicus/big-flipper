@@ -20,7 +20,7 @@ enum {
 };
 
 // Exposed as we might change register values, but we still have to send these to the display driver.
-void driverInitDisplay();
+void driverUpdateDisplaySettings();
 
 #if defined(CFG_WANT_DISPLAY_14_SEGMENT_LED)
 
@@ -45,10 +45,8 @@ FlipdotDisplay& driverGetDisplay();
 
 // Commands to access driver from console. 
 #define DRIVER_CONSOLE_COMMANDS_1																										\
-	case /** ANIM-I **/ 0xca4a: /*animation_set(REGS[REGS_IDX_ANIMATION]);*/ break; 													\
 	case /** DISP **/ 0x1e2b: driverGetDisplay().write((const char*)u_pop()); break; 													\
 	case /** DISP-B **/ 0x5824: { const uint8_t pos = u_pop(); driverGetDisplay().writeBitmap((const uint8_t*)u_pop(), pos); } break; 	\
-	case /** DISP-I **/ 0x582f: driverInitDisplay(); break; 																			\
 	case /** DISP-C **/ 0x5825: { const uint8_t end = u_pop(); driverGetDisplay().clear(u_pop(), end); } break; 						\
 
 #define DRIVER_CONSOLE_COMMANDS			\
