@@ -32,28 +32,25 @@ RST: ISP/5, GND: ISP/6, VCC: ISP/2.
 
 // Pin Assignments for ATMega328. 
 enum {
-	// Misc. 
-	GPIO_PIN_DEBUG_LED = 			13,		// Yellow 'L' LED on board that we can't see.
-	
 	// Serial pins (not used directly).
-	GPIO_PIN_CONSOLE_TXO = 			1,
-	GPIO_PIN_CONSOLE_RXI = 			0,
+	GPIO_PIN_CONSOLE_TXO = 			1,		// PD1
+	GPIO_PIN_CONSOLE_RXI = 			0,		// PD0
 	
 	// SD Card.
-	GPIO_PIN_SD_CARD_NSEL = 		A1,
+	GPIO_PIN_SD_CARD_NSEL = 		A1,		// PC1
 	
 	// Column Driver.
-	GPIO_PIN_COL_EN = 				10,
+	GPIO_PIN_COL_EN = 				10,		// PB2
 	
 	// Row drives.
-	GPIO_PIN_ROW_0 =				8,
-	GPIO_PIN_ROW_1 =				9,
-	GPIO_PIN_ROW_2 =				2,
-	GPIO_PIN_ROW_3 =				3,
-	GPIO_PIN_ROW_4 =				4,
-	GPIO_PIN_ROW_5 =				5,
-	GPIO_PIN_ROW_6 =				6,
-	GPIO_PIN_ROW_DATA =				7,
+	GPIO_PIN_ROW_0 =				8,		// PB0
+	GPIO_PIN_ROW_1 =				9,		// PB1
+	GPIO_PIN_ROW_2 =				2,		// PD2
+	GPIO_PIN_ROW_3 =				3,		// PD3
+	GPIO_PIN_ROW_4 =				4,		// PD4
+	GPIO_PIN_ROW_5 =				5,		// PD5
+	GPIO_PIN_ROW_6 =				6,		// PD6
+	GPIO_PIN_ROW_DATA =				7,		// PD7
 	
 	// I2C interface (setup by Wire/TWI lib).
 	GPIO_PIN_SDA = 					A4,

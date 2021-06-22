@@ -37,7 +37,7 @@ FlipdotDisplay& driverGetDisplay();
 
 #define DRIVER_CONSOLE_COMMANDS_2																										\
 	case /** FLIP **/ 0x2836: 																											\
-	{ const bool hl = !!u_pop(); const uint8_t row = u_pop(); driverGetDisplay().testFlip(u_pop(), row, hl); } break; 
+	{ const bool hl = !!u_pop(); const uint8_t row = u_pop(); driverGetDisplay().doFlip(u_pop(), row, hl); } break; 
 
 #else
 # error Need CFG_WANT_DISPLAY_xxx

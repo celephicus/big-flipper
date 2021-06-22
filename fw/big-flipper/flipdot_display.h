@@ -59,7 +59,7 @@ public:
 	virtual const AlphaDisplayFont* getDefaultFont() { return (const AlphaDisplayFont*)&FLIPDOT_DISPLAY_FONT_DEFAULT; }
 
 	// Public write method for testing the hardware. This uses delay() to do the pulse, so it will block.
-	void testFlip(uint8_t col, uint8_t row, bool high_low);
+	void doFlip(uint8_t col, uint8_t row, bool high_low);
 	
 	// Update methods used for setUpdateMode().
 	enum {

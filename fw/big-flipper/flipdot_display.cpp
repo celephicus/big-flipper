@@ -290,11 +290,12 @@ int8_t FlipdotDisplay::thread_update_immediate(void* arg) {
 						const bool high_low = new_flipstate ^ !(row & 1);						// Decide which way to flip, odd numbered rows are INVERTED.
 						//eventPublish(EV_DEBUG, new_flipstate, col*100+row*10+high_low);
 						//dump_flip(col, row, new_flipstate);
-						display->testFlip(col, _BV(row), high_low);
+						display->doFlip(col, _BV(row), high_low);
 					
 					}
 				}
 				*p_col_disp  = *p_col_seg;														// Don't forget to update the display data.
+			THREAD_YIELD();
 			}
 		}
 
@@ -350,7 +351,7 @@ int8_t FlipdotDisplay::thread_update_random(void* arg) {
 }
 */
 // Crappy blocking test function. 
-void FlipdotDisplay::testFlip(uint8_t col, uint8_t row, bool high_low) {
+void FlipdotDisplay::doFlip(uint8_t col, uint8_t row, bool high_low) {
 	set_col(col, high_low);
 	set_row(row, !high_low);
 #ifdef WANT_TIMER
