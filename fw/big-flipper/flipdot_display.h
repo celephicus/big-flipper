@@ -63,7 +63,8 @@ public:
 	
 	// Update methods used for setUpdateMode().
 	enum {
-		UPDATE_IMMEDIATE,
+		UPDATE_WIPE_RIGHT,
+		UPDATE_WIPE_LEFT,
 //		UPDATE_WIPE_DOWN,
 //		UPDATE_WIPE_UP,
 //		UPDATE_WIPE_LEFT,
@@ -82,8 +83,10 @@ protected:
 	
 	virtual thread_t get_update_thread();
 
-	static int8_t thread_update_immediate(void* arg);
-	//static int8_t thread_update_random(void* arg);
+	static int8_t thread_update_horizontal_wipe_helper(void* arg, bool rtl);
+	static int8_t thread_update_wipe_right(void* arg);
+	static int8_t thread_update_wipe_left(void* arg);
+	static int8_t thread_update_random(void* arg);
 	
 private:
 	const uint8_t*	 	_gpio_pins;					// Set by begin(), not by constructor. 

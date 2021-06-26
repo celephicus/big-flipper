@@ -45,6 +45,7 @@ gen_(SD_CARD_INIT_FAIL,		15,	"SD card failed to initialise")															\
 #define REGS_ENABLES_DEFS(gen_)																							\
  gen_(DUMP_REGS,		0,	"Regs values dump to console")																\
  gen_(DUMP_REGS_FAST,	1,	"Dump at 5/s rather than 1/s")																\
+ gen_(LOGGING,			2,	"Vebose debug log")																\
 
 // Generate FLAGS defs.
 //
@@ -74,7 +75,7 @@ enum {
 	REGS_ENABLES_DEFS(REGS_ENABLES_GEN_ENUM_MASK)
 };
 
-// Generate help string for flags & enables.
+// Generate help string for flags & enables. You can add anything you want to this, or even not define it at all. 
 #define REGS_EXTRA_HELP_STR "\r\nFlags:" REGS_FLAGS_DEFS(REGS_GENERIC_MASK_GEN_HELP_STR) "\r\nEnables:" REGS_ENABLES_DEFS(REGS_GENERIC_MASK_GEN_HELP_STR)
 
 #endif // REGS_LOCAL_H__

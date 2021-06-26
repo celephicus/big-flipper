@@ -10,6 +10,7 @@
 #include "thread.h"
 //#include "adc_driver.h"
 #include "regs.h"
+#include "console.h"
 
 FILENUM(3);
 
@@ -18,13 +19,15 @@ static void display_init();
 
 // 16K33 14 segment display.
 #if defined(CFG_WANT_DISPLAY_14_SEGMENT_LED)	
-static HT16K33Display f_display((const AlphaDisplayFont*)&HT16K33_DISPLAY_FONT_DEFAULT);
+static HT16K33Display f_display;
 HT16K33Display& driverGetDisplay() { return f_display; }
 static void display_init() {
 	f_display.begin();
 	driverUpdateDisplaySettings();
 }
-static void display_init_local() {}
+static void display_init_local() {
+	f_display.setFont((const AlphaDisplayFont*)&HT16K33_DISPLAY_FONT_CAPS);
+}
 
 // Flipdot display.
 #elif defined(CFG_WANT_DISPLAY_FLIPDOT)
@@ -32,7 +35,7 @@ static const uint8_t FLIPDOTS_GPIO_PINS[] PROGMEM = {
 	GPIO_PIN_ROW_0, GPIO_PIN_ROW_1, GPIO_PIN_ROW_2, GPIO_PIN_ROW_3, GPIO_PIN_ROW_4, GPIO_PIN_ROW_5, GPIO_PIN_ROW_6,
 	GPIO_PIN_ROW_DATA, GPIO_PIN_COL_EN,
 };
-static FlipdotDisplay f_display(FLIPDOTS_GPIO_PINS, (const AlphaDisplayFont*)&FLIPDOT_DISPLAY_FONT_DEFAULT); //FLIPDOT_DISPLAY_FONT_CAPS_REVERSED
+static FlipdotDisplay f_display(FLIPDOTS_GPIO_PINS); 
 FlipdotDisplay& driverGetDisplay() { return f_display; }
 static void display_init() {
 	f_display.begin();
@@ -40,7 +43,7 @@ static void display_init() {
 }
 static void display_init_local() {
 	f_display.setProperty(FlipdotDisplay::PROP_PULSE_DURATION, REGS[REGS_IDX_FLIPDISK_PULSE_WIDTH]);
-	//f_display.setTextDirectionRTL(true);
+	f_display.setFont((const AlphaDisplayFont*)&FLIPDOT_DISPLAY_FONT_DEFAULT);
 }
 
 #else
@@ -96,3 +99,22 @@ void debugRuntimeError(uint8_t fileno, uint16_t lineno, uint8_t errorno) {
 
 // This has to go somewhere. 
 uint16_t threadGetTicks() { return (uint16_t)millis(); }
+
+// Console output routines.
+void consolePrint(uint8_t s, console_cell_t x) {
+	switch (s) {
+		case CONSOLE_PRINT_NEWLINE:		GPIO_SERIAL_CONSOLE.print(F("\r\n")); (void)x; break;
+		case CONSOLE_PRINT_SIGNED:		GPIO_SERIAL_CONSOLE.print(x, DEC); GPIO_SERIAL_CONSOLE.print(' '); break;
+		case CONSOLE_PRINT_UNSIGNED:	GPIO_SERIAL_CONSOLE.print('+'); GPIO_SERIAL_CONSOLE.print((console_ucell_t)x, DEC); GPIO_SERIAL_CONSOLE.print(' '); break;
+		case CONSOLE_PRINT_HEX:			GPIO_SERIAL_CONSOLE.print('$'); {
+											console_ucell_t m = 0xf;
+											do {
+												if ((console_ucell_t)x <= m) GPIO_SERIAL_CONSOLE.print(0);
+												m = (m << 4) | 0xf;
+											} while (CONSOLE_UCELL_MAX != m);
+										} GPIO_SERIAL_CONSOLE.print((console_ucell_t)x, HEX); GPIO_SERIAL_CONSOLE.print(' '); break;
+		case CONSOLE_PRINT_STR:			GPIO_SERIAL_CONSOLE.print((const char*)x); GPIO_SERIAL_CONSOLE.print(' '); break;
+		case CONSOLE_PRINT_STR_P:		GPIO_SERIAL_CONSOLE.print((const __FlashStringHelper*)x); GPIO_SERIAL_CONSOLE.print(' '); break;
+		default:						/* ignore */; break;
+	}
+}

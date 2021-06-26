@@ -256,102 +256,111 @@ void FlipdotDisplay::set_row(uint8_t row, bool high) {
 
 thread_t FlipdotDisplay::get_update_thread() {
 	static const thread_t UPDATE_THREADS[] PROGMEM = {
-		thread_update_immediate,			// UPDATE_IMMEDIATE
-		//thread_update_random,				// UPDATE_RANDOM
+		thread_update_wipe_right,			// UPDATE_WIPE_RIGHT
+		thread_update_wipe_left,			// UPDATE_WIPE_LEFT
+		thread_update_random,				// UPDATE_RANDOM
 	};
 	return (thread_t)pgm_read_word(&UPDATE_THREADS[get_update_mode(ELEMENT_COUNT(UPDATE_THREADS))]);
 }
-/*
-static void dump_flip(uint8_t col, uint8_t row, bool high_low) {
-	consolePrintValueStrProgmem(PSTR("Flip: ")); 
-	consolePrintValueSignedDecimal(col); consolePrintValueStrProgmem(PSTR(": ")); 
-	consolePrintValueSignedDecimal(row); consolePrintValueStrProgmem(PSTR(": ")); 
-	consolePrintValueSignedDecimal(high_low); consolePrintValueStrProgmem(PSTR(": ")); 
-	consolePrintNewline();
+
+static void dump_flip(uint8_t col, uint8_t row, bool f) {
+	if (REGS[REGS_IDX_ENABLES] & REGS_ENABLES_MASK_LOGGING) {
+		consolePrintValueStrProgmem(PSTR("Flip: ")); 
+		consolePrintValueSignedDecimal(col);
+		consolePrintValueSignedDecimal(row); 
+		consolePrintValueSignedDecimal(f); 
+		consolePrintNewline();
+	}
 }
-*/
-int8_t FlipdotDisplay::thread_update_immediate(void* arg) {
+
+int8_t FlipdotDisplay::thread_update_horizontal_wipe_helper(void* arg, bool rtl) {
     FlipdotDisplay* display = (FlipdotDisplay*)arg;
     THREAD_BEGIN();
 
 	while (1) {
 		THREAD_WAIT_UNTIL(display->is_dirty());				// Wait until the display data is flagged as dirty.
+		// display->set_clean();			// Now set clean, so if the display is set dirty again we will cycle through this thread again and set the state.
 
 		static uint8_t col, row;
-		for (col = 0; col < CHAR_COUNT * BITMAP_BYTE_SIZE; col += 1) {							// Iterate over all COLUMNS, we ignore character divisions...
-			uint8_t* p_col_disp = display->get_disp_buffer(0) + col;
-			uint8_t* p_col_seg =  display->get_seg_buffer(0) + col;
+		const uint8_t COL_COUNT = CHAR_COUNT * BITMAP_BYTE_SIZE;
+		for (col = rtl ? COL_COUNT : 0; rtl ? (col >= 0) : (col < COL_COUNT); col += rtl ? -1 : +1) { // Iterate over all COLUMNS, we ignore character divisions...
+			static uint8_t *p_col_disp, *p_col_seg;
+			p_col_disp = display->get_disp_buffer(0) + col;
+			p_col_seg =  display->get_seg_buffer(0) + col;
 			
 			if (*p_col_disp != *p_col_seg) {													// If the row data for this column needs updating...
 				for (row = 0; row < ROW_COUNT; row += 1) {										// Iterate over all ROWS...
 					const bool current_flipstate = !!(*p_col_disp & _BV(row));					// Get CURRENT state of dot.
 					const bool new_flipstate = !!(*p_col_seg & _BV(row));						// Get REQUIRED state of dot.
 					if (current_flipstate != new_flipstate) {									// If they differ a flip is required...
-						const bool high_low = new_flipstate ^ !(row & 1);						// Decide which way to flip, odd numbered rows are INVERTED.
-						//eventPublish(EV_DEBUG, new_flipstate, col*100+row*10+high_low);
-						//dump_flip(col, row, new_flipstate);
-						display->doFlip(col, _BV(row), high_low);
-					
+						display->doFlip(col, _BV(row), new_flipstate);
+						THREAD_YIELD();					
 					}
 				}
 				*p_col_disp  = *p_col_seg;														// Don't forget to update the display data.
-			THREAD_YIELD();
 			}
 		}
-
-		display->set_clean();
+		display->set_clean();			
 	}
 
 	THREAD_END();
 }
-/*
+
+int8_t FlipdotDisplay::thread_update_wipe_right(void* arg) { return thread_update_horizontal_wipe_helper(arg, false); }
+int8_t FlipdotDisplay::thread_update_wipe_left(void* arg) { return thread_update_horizontal_wipe_helper(arg, true); }
+
 int8_t FlipdotDisplay::thread_update_random(void* arg) {
     FlipdotDisplay* display = (FlipdotDisplay*)arg;
     THREAD_BEGIN();
 
 	static const uint8_t COUNT_BITMAP_BITS = 7;		// Bit 7 is unused, so we can ignore it.
 	static uint8_t twiddles[CHAR_COUNT * BITMAP_BYTE_SIZE * COUNT_BITMAP_BITS];		
-	static uint8_t count_twiddles;
+	static uint8_t s_count_twiddles;
 
 	while (1) {
 		THREAD_WAIT_UNTIL(display->is_dirty());				// Wait until the display data is flagged as dirty.
+		//display->set_clean();			// Now set clean, so if the display is set dirty again we will cycle through this thread again and set the state.
 
 		// Find every difference in pixel state.
-		count_twiddles = 0;
+		s_count_twiddles = 0;
 		for (uint8_t col = 0; col < CHAR_COUNT * BITMAP_BYTE_SIZE; col += 1) {							// Iterate over all COLUMNS...
-			const uint8_t col_twiddles = display->_disp_buffer[col] ^ display->_seg_buffer[col];
+			const uint8_t col_twiddles = ((display->get_seg_buffer(0))[col]) ^ ((display->get_disp_buffer(0))[col]);
 			for (uint8_t row = 0; row < COUNT_BITMAP_BITS; row += 1) {		// Bit 7 is unused.
 				if (col_twiddles & _BV(row))
-					twiddles[count_twiddles++] = col * 8 + row;		// Note indexes are 8 bit based for efficiency.
+					twiddles[s_count_twiddles++] = col * 8 + row;		// Note indexes are 8 bit based for efficiency.
 			}
 		}
-		
-		while (count_twiddles > 0) {
-			const uint8_t twiddle_idx = random(count_twiddles);
+
+	// Choose one twiddle at random, remove from list and flip it, then yield.
+		while (s_count_twiddles > 0) {
+			const uint8_t twiddle_idx = random(s_count_twiddles);
 			const uint8_t col = twiddles[twiddle_idx] / 8;
 			const uint8_t row = twiddles[twiddle_idx] % 8;
-			const uint8_t mask = _BV(row);
-			memmove(&twiddles[twiddle_idx], &twiddles[twiddle_idx + 1], count_twiddles - twiddle_idx - 1);
-			count_twiddles -= 1;
-			
-			bool new_flipstate = !!(display->_seg_buffer[col] & mask);			// Get REQUIRED state of dot.
-			display->_disp_buffer[col] ^= mask;									// Write new state to display buffer. 
+			memmove(&twiddles[twiddle_idx], &twiddles[twiddle_idx + 1], s_count_twiddles - twiddle_idx - 1);
+			s_count_twiddles -= 1;
 
-			const bool high_low = new_flipstate ^ !(row & 1);						// Decide which way to flip, odd numbered rows are INVERTED.
-			eventPublish(EV_DEBUG, new_flipstate, col*100+row*10+high_low);
-			display->testFlip(col, mask, high_low);
-		
+			uint8_t* p_col_disp = display->get_disp_buffer(0) + col;
+			uint8_t* p_col_seg =  display->get_seg_buffer(0) + col;
+			
+			const bool new_flipstate = !!(*p_col_seg & _BV(row));						// Get REQUIRED state of dot from display buffer.
+			display->doFlip(col, _BV(row), new_flipstate);
+			if (new_flipstate)
+				*p_col_disp |= _BV(row);														// Don't forget to update the display data.
+			else
+				*p_col_disp &= ~_BV(row);
+			
 			THREAD_YIELD();
 		}
-		
-		display->set_clean();
+		display->set_clean();	
 	}
 
 	THREAD_END();
 }
-*/
-// Crappy blocking test function. 
-void FlipdotDisplay::doFlip(uint8_t col, uint8_t row, bool high_low) {
+
+// Raw flip function. Blocks but only for a few hundred us.
+void FlipdotDisplay::doFlip(uint8_t col, uint8_t row, bool f) {
+	dump_flip(col, row, f);
+	const bool high_low = f ^ !(row & 1);						// Decide which way to flip, odd numbered rows are INVERTED.
 	set_col(col, high_low);
 	set_row(row, !high_low);
 #ifdef WANT_TIMER

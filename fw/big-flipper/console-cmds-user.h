@@ -1,10 +1,8 @@
 #include "project_config.h"
 #include "driver.h"
-#include "WORD_driver.h"
+#include "word_driver.h"
 #include "regs.h"
-#include <avr/wdt.h>																			
-
-REGS_CONSOLE_EXTRA
+#include <avr/wdt.h>
 
 // User commands, these are really examples...
 static bool console_cmds_user(char* cmd) {

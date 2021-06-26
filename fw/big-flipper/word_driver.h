@@ -25,16 +25,16 @@ uint16_t wordDriverGetLink(uint8_t idx);
 	case /* ?W */ 0x688d: 																						\
 		{																										\
 			const uint16_t fpos = wordDriverGetFpos();															\
-			consolePrintValueStr(wordDriverGetCurrentWordStr());												\
+			consolePrint(CONSOLE_PRINT_STR, (console_cell_t)wordDriverGetCurrentWordStr());					\
 			uint8_t link_count = wordDriverGetLinkCount();														\
 			for (uint8_t i = 0; i < link_count; i += 1) { 														\
 				wordDriverSetCurrentWord(fpos);																	\
 				const uint16_t wp = wordDriverGetLink(i); 														\
-				consolePrintValueUnsignedDecimal(wp); 															\
+				consolePrint(CONSOLE_PRINT_UNSIGNED, wp); 														\
 				if (wordDriverSetCurrentWord(wp))																\
-					consolePrintValueStr(wordDriverGetCurrentWordStr());										\
+					consolePrint(CONSOLE_PRINT_STR, (console_cell_t)wordDriverGetCurrentWordStr());			\
 				else																							\
-					consolePrintValueStrProgmem(PSTR("----"));													\
+					consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR("----"));							\
 			}																									\
 			wordDriverSetCurrentWord(fpos);																		\
 		}																										\

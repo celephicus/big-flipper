@@ -21,7 +21,7 @@ typedef struct {
 class AlphaDisplay {
 public:
 	// Default constructor does very little. Font can be set to NULL, but nothing will be printed. 
-	AlphaDisplay(const AlphaDisplayFont* font);
+	AlphaDisplay(const AlphaDisplayFont* font=NULL);
 
 	// Destructor calls end().
 	virtual ~AlphaDisplay();
@@ -37,9 +37,6 @@ public:
 	// Set a font. If you don't do this, nothing will be displayed!
 	void setFont(const AlphaDisplayFont* font) { _font = font; }
 	
-	// Set text direction. Note I am not an Arabic speaker, this is for easy implementation of a mirrored dusplay with a custom font.
-	void setTextDirectionRTL(bool en) { _text_dir_rtl = en; }
-	
 	// Return number of characters in display.
 	virtual uint8_t getCharCount() const = 0;
 	
@@ -49,9 +46,12 @@ public:
 	// Check if the display is connected.
 	bool isConnected() const;
 		
-	// Clear the display. Called on a successful begin(). Subclasses can override do_clear if there is a display specific method of clearing. 
+	// Clear the display. Subclasses can override protected method do_clear if there is a display specific method of clearing. 
 	void clear(uint8_t start=0, uint8_t end=0xff);
 
+	// Reset the display state so that it represents the current data. Called on a successful begin() and after changing direction.
+	void reset();
+	
 	// Write a string in RAM to the display at the given position.
 	void write(const char* str, uint8_t pos=0);
 	
@@ -88,8 +88,6 @@ protected:
 	void set_clean() { _dirty = false; }
 	bool is_dirty() { return _dirty; }
 
-	virtual void do_clear(uint8_t start, uint8_t end);
-	
 	// Return thread function to call for updating display. Typically this indexes into a static table. Returns NULL on out of range. 
 	virtual thread_t get_update_thread() = 0;
 	
@@ -124,7 +122,6 @@ private:
 	uint8_t*				_seg_buffer;
 	uint8_t* 				_disp_buffer;
 	uint16_t*				_props;			// Array of property values, size set by subclass. 
-	bool _text_dir_rtl;
 	
 	struct {
 		uint8_t thread_func_idx;						// Index to update thread.

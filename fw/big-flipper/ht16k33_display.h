@@ -23,7 +23,7 @@ typedef struct {
 	uint8_t			width;						// Width of character bitmap in bytes.
 	const uint16_t	bitmaps['Z' - 'A' + 1];		// Size = (end - start + 1) * 2.
 } HT16K33DisplayFontCaps;
-extern const HT16K33DisplayFontCaps HT16K33_FONT_CAPS;
+extern const HT16K33DisplayFontCaps HT16K33_DISPLAY_FONT_CAPS;
 
 class HT16K33Display : public AlphaDisplay {
 public:

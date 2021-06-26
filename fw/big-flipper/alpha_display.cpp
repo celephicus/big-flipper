@@ -4,9 +4,10 @@
 #include "debug.h"
 FILENUM(10);
 
+#include "utils.h"
 #include "alpha_display.h"
 
-AlphaDisplay::AlphaDisplay(const AlphaDisplayFont* font) : _font(font), _connected(false), _seg_buffer(NULL), _disp_buffer(NULL), _props(NULL), _text_dir_rtl(false) {
+AlphaDisplay::AlphaDisplay(const AlphaDisplayFont* font) : _font(font), _connected(false), _seg_buffer(NULL), _disp_buffer(NULL), _props(NULL) {
 	setUpdateMethod(0);							// Set default update method. 
 };
 
@@ -24,9 +25,12 @@ bool AlphaDisplay::begin(bool connected) {
 	_disp_buffer = new uint8_t[getCharCount() * getCharBitmapByteSize()];
 	_props = new uint16_t[getPropertyCount()];
 	_connected = connected;
+	if (!isConnected()) 
+		return false;
 	setProperty(PROP_UPDATE_INTERVAL, 50);
 	clear();
-	return isConnected();
+	reset();
+	return true;
 }
 
 bool AlphaDisplay::isConnected() const {
@@ -54,20 +58,20 @@ const uint8_t* AlphaDisplay::get_char_bitmap(char c) {
 
 // Display write methods. 
 
-void AlphaDisplay::clear(uint8_t start, uint8_t end) {
-	if (isConnected()) {
-		if (start > getCharCount())
-			start = getCharCount();
-		if (end > getCharCount())
-			end = getCharCount();
-		do_clear(start, end);
-	}
+void AlphaDisplay::reset() {
+	uint8_t* p_col_disp = get_disp_buffer(0);
+	uint8_t* p_col_seg =  get_seg_buffer(0);
+	fori (getCharCount() * getCharBitmapByteSize()) 						// Iterate over all bytes in the buffer.
+		*p_col_disp++ = ~*p_col_seg++;							// And set them to the complement of what is in the write buffer, this guarantees that they will be written.
 }
 
-// DEfault clear method, maybe the subclass can do this more effiently...
-void AlphaDisplay::do_clear(uint8_t start, uint8_t end) {
-	memset(get_seg_buffer(start), 0, (end - start) * getCharBitmapByteSize());
-	set_dirty();
+void AlphaDisplay::clear(uint8_t start, uint8_t end) {
+	if (isConnected()) {
+		if (start > getCharCount())	start = getCharCount();
+		if (end > getCharCount())	end = getCharCount();
+		memset(get_seg_buffer(start), 0, (end - start) * getCharBitmapByteSize());
+		set_dirty();
+	}
 }
 
 void AlphaDisplay::write(const char* str, uint8_t pos) {
@@ -121,8 +125,6 @@ bool AlphaDisplay::isUpdateDone() {
 */
 
 uint8_t* AlphaDisplay::get_seg_buffer(uint8_t pos) {
-	if (_text_dir_rtl)
-		pos = getCharCount() - 1 - pos;
 	return &_seg_buffer[pos * getCharBitmapByteSize()];
 }
 uint8_t* AlphaDisplay::get_disp_buffer(uint8_t pos) {

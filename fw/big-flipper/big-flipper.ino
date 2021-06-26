@@ -19,30 +19,30 @@ FILENUM(1);
 //
 // Console....
 
-static void print_console_prompt() { consolePrintValueStrProgmem(PSTR("\r\n> ")); }
-static void print_console_seperator() {	consolePrintValueStrProgmem(PSTR(" -> "));}
+static void print_console_prompt() { consolePrint(CONSOLE_PRINT_NEWLINE, 0); consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR(">"));}
+static void print_console_seperator() {	 consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR(" -> ")); }
 static void console_init() {
 	GPIO_SERIAL_CONSOLE.begin(CFG_CONSOLE_BAUDRATE);
-	consoleInit(&GPIO_SERIAL_CONSOLE);								// Setup console to write to default serial port.
-	consolePrintValueStrProgmem(PSTR("\r\n\r\nBig Flipper"));		// Console signon message.
+	consoleInit();								
+	consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR("\r\n\r\nBig Flipper"));		// Console signon message.
 	print_console_prompt();											// Start off with a prompt.
 }
 static void console_error(console_rc_t rc) {
-	consolePrintValueStrProgmem(PSTR("Error: "));					// Print error code:(
-	consolePrintValueStrProgmem(consoleGetErrorDescription(rc));	// Print description.
-	consolePrintValueStrProgmem(PSTR(": "));
-	consolePrintValueSignedDecimal(rc);								// Print value as well.
+	consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR("Error:"));					// Print error code:(
+	consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)consoleGetErrorDescription(rc));	// Print description.
+	consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR(":"));
+	consolePrint(CONSOLE_PRINT_SIGNED, rc);								// Print value as well.
 }
 static void console_service() {
 	if (GPIO_SERIAL_CONSOLE.available()) {							// If a character is available...
 		const char c = GPIO_SERIAL_CONSOLE.read();
 		console_rc_t rc = consoleAccept(c);							// Add it to the input buffer.
 		if (CONSOLE_RC_ERROR_ACCEPT_BUFFER_OVERFLOW == rc) {		// Check for overflow...
-			consolePrintValueStr(consoleAcceptBuffer());			// Echo input line back to terminal. 
+			consolePrint(CONSOLE_PRINT_STR, (console_cell_t)consoleAcceptBuffer());			// Echo input line back to terminal. 
 			console_error(rc);
 		}
 		else if (CONSOLE_RC_OK == rc) {								// Check for a newline...
-			consolePrintValueStr(consoleAcceptBuffer());			// Echo input line back to terminal. 
+			consolePrint(CONSOLE_PRINT_STR, (console_cell_t)consoleAcceptBuffer());			// Echo input line back to terminal. 
 			print_console_seperator();								// Print separator before output.
 			rc = consoleProcess(consoleAcceptBuffer());				// Process input string and record error code. 
 			if (CONSOLE_RC_OK != rc) 								// If all went well then we get an OK status code
@@ -70,6 +70,20 @@ void setup() {
 	wordDriverInit();
 }
 
+static void do_dump_regs() {
+    static uint8_t s_ticker;
+    
+    if (REGS[REGS_IDX_ENABLES] & REGS_ENABLES_MASK_DUMP_REGS) {
+		if (0 == s_ticker--) {
+			s_ticker = (REGS[REGS_IDX_ENABLES] & REGS_ENABLES_MASK_DUMP_REGS_FAST) ? 2 : 10; // Dump 5Hz or 1Hz.
+			Serial.print(F("Regs: ")); Serial.print(millis()); Serial.print(F(": ")); 
+			regsPrintValuesRam();
+			consolePrint(CONSOLE_PRINT_NEWLINE, 0);
+		}
+    }
+	else 
+		s_ticker = 0;
+}
 void loop() {
 	console_service();
 	driverService();
@@ -78,6 +92,11 @@ void loop() {
 	runEveryU16(500) {
 		driverUpdateDisplaySettings();
 		animation_set(REGS[REGS_IDX_ANIMATION]);		// No-op if no change.
+	}
+	
+	// Dump registers every 100ms.
+	runEveryU8(100) {
+		do_dump_regs();
 	}
 	
 	// Service animation.

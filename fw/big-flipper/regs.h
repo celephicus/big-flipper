@@ -55,57 +55,39 @@ bool regsWriteMaskFlags(uint16_t mask, bool s);
 // Update bits in flags register with set bits in mask m with mask value. Return true if value has changed. 
 bool regsUpdateMaskFlags(uint16_t mask, uint16_t val);
 
-#include "console.h"			// We use the console output functions.
+// Return the name of the register derived from the regs.local.h file. 
+const char* regsGetRegisterName(uint8_t idx);
 
-#define REGS_CONSOLE_EXTRA																		\
- static void print_value(uint8_t idx) {															\
-	 if (_BV(idx) & REGS_PRINT_HEX_MASK)														\
-		 consolePrintValueHex(REGS[idx]);														\
-	 else																						\
-		 consolePrintValueUnsignedDecimal(REGS[idx]);											\
- }                                                                                              \
- static void print_values_verbose() {															\
-	for (uint8_t i = 0; i < REGS_COUNT; i += 1) {												\
-		consolePrintNewline();																	\
-		consolePrintValueSignedDecimal(i);														\
-		consolePrintValueStrProgmem(regsGetRegisterName(i)); 									\
-		print_value(i);					 														\
-		consolePrintValueStrProgmem(regsGetRegisterDescription(i));								\
-		wdt_reset();																			\
-	}																							\
-	if (regsGetHelpStr()) {																		\
-		consolePrintNewline();																	\
-		consolePrintValueStrProgmem(regsGetHelpStr());											\
-	}																							\
- }
+// Return a help text derived from the regs.local.h file. 
+const char* regsGetRegisterDescription(uint8_t idx);
 
- 
+// Return an additional help string, contents generated in the regs.local.h file. 
+const char* regsGetHelpStr();
+
+// Print a single register value in hex or decimal.
+void regsPrintValue(uint8_t idx);
+
+// Print a range register value in hex or decimal.
+void regsPrintValues(uint8_t s_idx, uint8_t e_idx);
+
+// Print all the register values.
+void regsPrintValuesAll();
+
+// Print just the regster values in RAM.
+void regsPrintValuesRam();
+
+// Print all the register values with lots of verbosity.
+void regsPrintValuesVerbose();
+
 #define REGS_CONSOLE_COMMANDS																																\
 	case /** V! **/ 0x7472: { const uint8_t i = u_pop(); if (i >= REGS_COUNT) raise(CONSOLE_RC_ERROR_INDEX_OUT_OF_RANGE); REGS[i] = u_pop(); } break;		\
 	case /** V@ **/ 0x7413: { const uint8_t i = u_pop(); if (i >= REGS_COUNT) raise(CONSOLE_RC_ERROR_INDEX_OUT_OF_RANGE); u_push(REGS[i]); } break;			\
-	case /** ?V **/ 0x688c: { const uint8_t i = u_pop(); if (i >= REGS_COUNT) raise(CONSOLE_RC_ERROR_INDEX_OUT_OF_RANGE); print_value(i); } break;			\
-	case /** ??V **/ 0x85d3: for (uint8_t i = 0; i < REGS_COUNT; i += 1) print_value(i); break;																\
-	case /** ???V **/ 0x3cac: print_values_verbose(); break;																								\
+	case /** ?V **/ 0x688c: { const uint8_t i = u_pop(); if (i >= REGS_COUNT) raise(CONSOLE_RC_ERROR_INDEX_OUT_OF_RANGE); regsPrintValue(i); } break;		\
+	case /** ??V **/ 0x85d3: regsPrintValuesAll(); break;																\
+	case /** ???V **/ 0x3cac: regsPrintValuesVerbose(); break;																								\
 	case /** NV-DEFAULT **/ 0xfcdb: regsNvSetDefaults(); break;																								\
 	case /** NV-W **/ 0xa8c7: regsNvWrite(); break;																											\
 	case /** NV-R **/ 0xa8c2: regsNvRead(); break;																											\
 
-// Return the name of the register derived from the settings.local.h file. 
-const char* regsGetRegisterName(uint8_t idx);
 
-// Return a help text derived from the settings.local.h file. 
-const char* regsGetRegisterDescription(uint8_t idx);
-
-// Return an additional help string, contents generated in the settings.local.h file. 
-const char* regsGetHelpStr();
-#if 0
-// Return register value safely & nicely formatted.
-const char* regsFormatValue(uint8_t reg_idx);
-
-// Print all register values.
-void regsPrintRegValueAll();
-
-// Print only RAM register values.
-void regsPrintRegValueRam();
-#endif
 #endif // REGS_H__
