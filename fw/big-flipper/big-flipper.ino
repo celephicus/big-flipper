@@ -37,12 +37,12 @@ static void console_service() {
 	if (GPIO_SERIAL_CONSOLE.available()) {							// If a character is available...
 		const char c = GPIO_SERIAL_CONSOLE.read();
 		console_rc_t rc = consoleAccept(c);							// Add it to the input buffer.
-		if (CONSOLE_RC_ERROR_ACCEPT_BUFFER_OVERFLOW == rc) {		// Check for overflow...
-			consolePrint(CONSOLE_PRINT_STR, (console_cell_t)consoleAcceptBuffer());			// Echo input line back to terminal. 
+		if ((c >= ' ') && (c <= '\x7f')) 							// If printable...
+			Serial.write(c);										// Echo back.
+		if (CONSOLE_RC_ERROR_ACCEPT_BUFFER_OVERFLOW == rc) 		// Check for overflow...
 			console_error(rc);
-		}
 		else if (CONSOLE_RC_OK == rc) {								// Check for a newline...
-			consolePrint(CONSOLE_PRINT_STR, (console_cell_t)consoleAcceptBuffer());			// Echo input line back to terminal. 
+			//consolePrint(CONSOLE_PRINT_STR, (console_cell_t)consoleAcceptBuffer());			// Echo input line back to terminal. 
 			print_console_seperator();								// Print separator before output.
 			rc = consoleProcess(consoleAcceptBuffer());				// Process input string and record error code. 
 			if (CONSOLE_RC_OK != rc) 								// If all went well then we get an OK status code
@@ -87,7 +87,8 @@ static void do_dump_regs() {
 void loop() {
 	console_service();
 	driverService();
-
+	(void)random();		// Add a bit of extra randomness.
+	
 	// Updates display & animation from registers every so often.
 	runEveryU16(500) {
 		driverUpdateDisplaySettings();

@@ -265,11 +265,12 @@ thread_t FlipdotDisplay::get_update_thread() {
 
 static void dump_flip(uint8_t col, uint8_t row, bool f) {
 	if (REGS[REGS_IDX_ENABLES] & REGS_ENABLES_MASK_LOGGING) {
-		consolePrintValueStrProgmem(PSTR("Flip: ")); 
-		consolePrintValueSignedDecimal(col);
-		consolePrintValueSignedDecimal(row); 
-		consolePrintValueSignedDecimal(f); 
-		consolePrintNewline();
+		consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR("(")); 
+		consolePrint(CONSOLE_PRINT_SIGNED, col);
+		consolePrint(CONSOLE_PRINT_SIGNED, row);
+		consolePrint(CONSOLE_PRINT_SIGNED, f);
+//		consolePrint(CONSOLE_PRINT_NEWLINE, 0);
+		consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR(")")); 
 	}
 }
 
@@ -293,7 +294,9 @@ int8_t FlipdotDisplay::thread_update_horizontal_wipe_helper(void* arg, bool rtl)
 					const bool current_flipstate = !!(*p_col_disp & _BV(row));					// Get CURRENT state of dot.
 					const bool new_flipstate = !!(*p_col_seg & _BV(row));						// Get REQUIRED state of dot.
 					if (current_flipstate != new_flipstate) {									// If they differ a flip is required...
-						display->doFlip(col, _BV(row), new_flipstate);
+						dump_flip(col, row, new_flipstate);
+						const bool high_low = new_flipstate ^ !(row & 1);			// Decide which way to flip, odd numbered rows are INVERTED.
+						display->doFlip(col, _BV(row), high_low);
 						THREAD_YIELD();					
 					}
 				}
@@ -343,7 +346,9 @@ int8_t FlipdotDisplay::thread_update_random(void* arg) {
 			uint8_t* p_col_seg =  display->get_seg_buffer(0) + col;
 			
 			const bool new_flipstate = !!(*p_col_seg & _BV(row));						// Get REQUIRED state of dot from display buffer.
-			display->doFlip(col, _BV(row), new_flipstate);
+			dump_flip(col, row, new_flipstate);
+			const bool high_low = new_flipstate ^ !(row & 1);			// Decide which way to flip, odd numbered rows are INVERTED.
+			display->doFlip(col, _BV(row), high_low);
 			if (new_flipstate)
 				*p_col_disp |= _BV(row);														// Don't forget to update the display data.
 			else
@@ -358,11 +363,9 @@ int8_t FlipdotDisplay::thread_update_random(void* arg) {
 }
 
 // Raw flip function. Blocks but only for a few hundred us.
-void FlipdotDisplay::doFlip(uint8_t col, uint8_t row, bool f) {
-	dump_flip(col, row, f);
-	const bool high_low = f ^ !(row & 1);						// Decide which way to flip, odd numbered rows are INVERTED.
-	set_col(col, high_low);
-	set_row(row, !high_low);
+void FlipdotDisplay::doFlip(uint8_t col_idx, uint8_t row_mask, bool high_low) {
+	set_col(col_idx, high_low);
+	set_row(row_mask, !high_low);
 #ifdef WANT_TIMER
 	OSP_SET_AND_FIRE(display->getProperty(PROP_PULSE_DURATION));
 	while (!OSP_INPROGRESS())

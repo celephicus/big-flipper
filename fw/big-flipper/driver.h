@@ -48,6 +48,7 @@ FlipdotDisplay& driverGetDisplay();
 	case /** DISP **/ 0x1e2b: driverGetDisplay().write((const char*)u_pop()); break; 													\
 	case /** DISP-B **/ 0x5824: { const uint8_t pos = u_pop(); driverGetDisplay().writeBitmap((const uint8_t*)u_pop(), pos); } break; 	\
 	case /** DISP-C **/ 0x5825: { const uint8_t end = u_pop(); driverGetDisplay().clear(u_pop(), end); } break; 						\
+	case /** DISP-R **/ 0x5834: driverGetDisplay().reset(); break; 																		\
 
 #define DRIVER_CONSOLE_COMMANDS			\
  DRIVER_CONSOLE_COMMANDS_1		\

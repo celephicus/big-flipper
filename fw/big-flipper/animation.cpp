@@ -9,6 +9,8 @@ FILENUM(25);
 #include "word_driver.h"
 #include "thread.h"
 #include "animation.h"
+#include "regs.h"
+#include "console.h"
 
 
 // NULL thread, does nothing.
@@ -85,12 +87,19 @@ int8_t thread_words(void* arg) {
 	if (wordDriverGetCount() <= 0)
 		THREAD_EXIT(1);
 	
-	wordDriverSetCurrentWordByIndex(0); // random(wordDriverGetCount());
+	wordDriverSetCurrentWordByIndex(random(wordDriverGetCount()));
 	while (1) {
 		driverGetDisplay().write(wordDriverGetCurrentWordStr());
 		const uint8_t link_idx = random(wordDriverGetLinkCount());
 		const uint16_t wp = wordDriverGetLink(link_idx);
-		//eventPublish(EV_NEW_WORD, link_idx, wp);
+		if (REGS[REGS_IDX_ENABLES] & REGS_ENABLES_MASK_LOGGING) {
+			consolePrint(CONSOLE_PRINT_NEWLINE, 0);
+			consolePrint(CONSOLE_PRINT_STR_P, (console_cell_t)PSTR("Word: ")); 
+			consolePrint(CONSOLE_PRINT_STR, (console_cell_t)wordDriverGetCurrentWordStr());
+			consolePrint(CONSOLE_PRINT_UNSIGNED, wordDriverGetLinkCount());
+			consolePrint(CONSOLE_PRINT_UNSIGNED, link_idx);
+			consolePrint(CONSOLE_PRINT_NEWLINE, 0);
+		}
 		wordDriverSetCurrentWord(wp);
 		THREAD_YIELD();
 	}
