@@ -2,6 +2,11 @@ import serial, time, msvcrt
 
 PORT = 'COM11'
 
+REGS = (
+	( 4, 1),	# Pixel update interval.
+	( 5, 0),	# Update wipe to right.
+	( 7, 0),	# No animation.
+)
 s = serial.Serial(PORT, baudrate=115200)
 run = False
 r = None
@@ -9,10 +14,13 @@ r = None
 def getkey():
 	return msvcrt.getch() if msvcrt.kbhit() else ''
 
-print("STOPPED")
+for r_idx, r_val in REGS:
+	s.write(f'{r_val} {r_idx} v!\r'.encode('ascii'))
+
 while 1:
 	s.write(b'"0:00 disp\r')
-
+	print("RESET")
+		
 	while not getkey(): pass
 	print("RUNNING")
 	
@@ -24,12 +32,12 @@ while 1:
 			tt = t
 			secs = (t - start) % 60
 			mins = ((t - start - secs) // 60) % 10
-			print(mins, secs)
+			print(f'{mins}:{secs:02}', end='\r')
 			secs = '"%d:%02d disp\r' % (mins, secs)
 			s.write(secs.encode('ascii'))
 		if getkey(): break
 		
-	print("STOPPED")
+	print("\nSTOPPED")
 
 	while not getkey(): pass
 
