@@ -3,7 +3,7 @@
 The name is stupid, it's 'netlist' written backwards, and impossible to spell. It sounds like some ethnic ancient British cheese.
 
 ## Purpose
-I never like drawing schematics with a COD tool if they were never intended for use in producing a PCB. I always found using a bare netlist format much
+I never like drawing schematics with a CAD tool if they were never intended for use in producing a PCB. I always found using a bare netlist format much
 more natural. A netlist lists the connections between pins on the various components in your design, and can be made very compact if you take advantage 
 of the repetition inherent in much design work, eg a counter IC has eight outputs Q0, Q1,... Q7, or more succinctly Q[0-7].
 

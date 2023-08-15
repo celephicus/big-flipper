@@ -1,0 +1,37 @@
+How To Drive Flipdots
+
+How They Work
+
+How they work is surprisingly easy. Each flipdot comprises a solenoid, a coil of wire wound round an iron core with specific magnetic properties. The _actual_ dot is a vane that is pivoted so it either shows its brightly coloured face or moves 90Deg so that it is only visible side on. The vane has a small magnet on it, arranged so that one magnetic pole is close to the solenoid in one position, and the other pole close to the solenoid pole in the other; so that the magnet is actually a disk with 2 'N' poles and 2 'S' poles. Now remembering your school physics, that unlike magnetic poles attract, you can see that if the solenoid pole is of one polarity the flipdot will show it's bright face, and of the other polarity it will turn 90Deg and be nearly invisible.
+
+And now magic happens: by making the solenoid core out of an iron that can _maintain_ its magnetic polarity _after_ the current in its windings have stopped flowing each disk now remembers its position. Look up 'magnetic remanence' for more on this fascinating phenomemon, which also enable core memory to function. Typically a pulse of a few hundres microseconds is sufficient to reverse the magnetic polarity of the core. Of course the actual disc requires a bit longer to actually move.
+
+How to Drive Them
+
+It's actually quite hard to get your head around how to drive these flippin' things. The end requirement is to be able to pass current through exactly _one_ coil, without affecting any others, and to use the absolute minimum number of componeNts. 
+
+Firstly you have to understand how they are wired up, see the next schematic. This scheme is used on evey panel I have ever seen, Wikipedia https://en.wikipedia.org/wiki/Flip-disc_display claims that some panels were wired up in a simple matrix without diode, but I have never been able to get this to work.
+
+Anyway, looking at the schematic, you can see that each columns are commoned to one bus per column, but each row is connected via a pair of diode to two busses per row. The schematic shows a very small panel of 9 flipdots, so it has 2 column busses and 4 row busses, labelled 'ROW_nH' & 'ROW_nL'. The principle of operation can be extended to panels of any size.
+
+Driving Principle
+
+First some circuit analysis principles: remember that the solenoids are actuated by _current_ flow. If both ends of the solenoid are at the same voltage then no current can flow. Also remember that current can only flow one way through a diode. 
+
+We specify that if current flows from the solenoid terminal with a '*' to the other terminal then it will 'set' and become visible. Current flowing the other way will 'clear' it so that it becomes non-visible. 
+
+In these schematics and those following the rows and column busses are driven by tri-state drivers, so they can be actively driven high 'H' or low 'L', or they can be undriven, denoted 'X'. In the schematic below there are 9 flipdots with a table showing how each bus line is driven to give a specific result. Each column of the table shows how to drive the busses to set or clear a _single_ flipdot. 
+
+The first column (of the table!) sets the top LH flipdot 'L1' by driving both ROW_1H & ROW_1L high ('H'), with all other rows undriven ('X'). For the column drives, COL_1 is set low with the other columns set high.
+
+Lets analyse how this works. For the rows, since none of the diodes on the ROW_1L bus are forward biased, how can they be, the cathodes are driven to the high voltage in the system, so they do not conduct, so can be ignored. Now the other row buses ROW_2L through ROW_3H are all undriven, so the buses are floating, and will take on whatever voltage is on the column end of the solenoid. But every column drive _apart_ from COL_1 is driven high so no more than 1 diode will be forward biased, all the coils on these busses are isolated from each other. The only way I could convince myself that this was what was happening was to highlight each wire with it's voltage high or low. Since COL_1 is driven low and all the other column busses are high the _only_ path for current through the system is through L. So flipdot L1 is now set.
+
+Now convince youself that it works for the other examples in the table.
+
+There is not that much interesting about the schematic, except:
+
+R2 pulls COL_EN to inactive when the pin is not set to output, like when the processor is being held in reset whilst being programmed by ISP or DebugWire. Else an internal pullup is activated that turns on the column drive, and was blowing drivers by turning on all columns at once!
+
+I haven't investigated different means of driving the solenoids, such as with a constant current source or a chopper drive, which decrease the turn on time to an inductive load. I just found that a 24V supply with a 12&omega; power resistor limits the current adequately. Certainly the 24V drive makes the dots flip faster than a 12V drive, as the current builds twice as quickly
+
+There really should be a hardware watchdog with a relay controlling the 24V power as a safeguard against the processor going crazy and leaving the drive enabled.
